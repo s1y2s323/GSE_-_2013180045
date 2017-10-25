@@ -10,6 +10,7 @@
 #include <random>
 #include <ctime>
 #include <functional>
+#include <time.h>
 
 using namespace std;
 
@@ -30,6 +31,12 @@ public:
 		x = xValue;
 		y = yValue;
 		z = zValue;
+	}
+	void add(const T&xValue, const T&yValue, const T&zValue)
+	{
+		x += xValue;
+		y += yValue;
+		z += zValue;
 	}
 	T getX() const { return x; };
 	T getY() const { return y; };

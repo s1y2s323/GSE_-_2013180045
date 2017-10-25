@@ -18,11 +18,12 @@ but WITHOUT ANY WARRANTY.
 #include "sCeneMgr.h"
 Renderer *g_Renderer = NULL;
 //Object *p_object = new Object();
-sCeneMgr scene;
+sCeneMgr* scene = NULL;
+
 
 void BuildObject(void)
 {
-	scene.buildObjects();
+	scene->buildObjects();
 	//Object *p_object = new Object();
 	//p_object->Setposition(100, 100, 10);
 	//p_object->Setsize(20);
@@ -34,12 +35,19 @@ void RenderScene(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.3f, 0.3f, 1.0f);
-	for (int i = 0; i < 50; i++)
-	{
-		g_Renderer->DrawSolidRect(scene.Getobject(i)->GetpositionX(), scene.Getobject(i)->GetpositionY(),0, 20, 1, 0, 1, 1);
 
-	}
-	scene.update();
+	//DWORD currTime = timeGetTime();
+	//DWORD elapsedTime = currTime - g_prevTime;
+	//g_prevTime = currTime;
+	scene->update();
+	scene->Draw();
+	//scene->
+	//for (int i = 0; i < 50; i++)
+	//{
+	//	g_Renderer->DrawSolidRect(scene.Getobject(i)->GetpositionX(), scene.Getobject(i)->GetpositionY(),0, 20, 1, 0, 1, 1);
+	//
+	//}
+	//scene.update();
 	
 	
 
@@ -80,7 +88,7 @@ void SpecialKeyInput(int key, int x, int y)
 int main(int argc, char **argv)
 {
 	// Initialize GL things
-	BuildObject();
+	//BuildObject();
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(0, 0);
@@ -98,11 +106,11 @@ int main(int argc, char **argv)
 	}
 
 	// Initialize Renderer
-	g_Renderer = new Renderer(500, 500);
-	if (!g_Renderer->IsInitialized())
-	{
-		std::cout << "Renderer could not be initialized.. \n";
-	}
+	//g_Renderer = new Renderer(500, 500);
+	//if (!g_Renderer->IsInitialized())
+	//{
+	//	std::cout << "Renderer could not be initialized.. \n";
+	//}
 
 	glutDisplayFunc(RenderScene);
 	glutIdleFunc(Idle);
@@ -110,9 +118,12 @@ int main(int argc, char **argv)
 	glutMouseFunc(MouseInput);
 	glutSpecialFunc(SpecialKeyInput);
 
+	scene = new sCeneMgr(500,500);
+	BuildObject();
 	glutMainLoop();
 
 	delete g_Renderer;
+	delete scene;
 
     return 0;
 }

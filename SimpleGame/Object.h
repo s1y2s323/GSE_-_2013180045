@@ -8,12 +8,19 @@ class Object
 	
 public:
 	Object();
-	void Setposition(int x,int y,int z) { m_pos.set(x,y,z); };
-	int GetpositionX() { return m_pos.getX(); };
-	int GetpositionY() { return m_pos.getY(); };
-	int GetpositionZ() { return m_pos.getZ(); };
+	void Setposition(double x, double y, double z) { m_pos.set(x,y,z); };
+	void add(double x, double y, double z) { m_pos.add(x, y, z); };
+	double GetpositionX() { return m_pos.getX(); };
+	double GetpositionY() { return m_pos.getY(); };
+	double GetpositionZ() { return m_pos.getZ(); };
 	void Setsize(int size) { m_size = size; };
-	int Getsize() { return m_size; };
+	double Getsize() { return m_size; };
+	void SetDir(double x, double y,double z) { m_dir.set(x, y,0); };
+	double GetdirX() { return m_dir.getX(); };
+	double GetdirY() { return m_dir.getY(); };
+
+	void Setdir(double x, double y, double z) { m_dir.set(x, y, z); };
+
 	//Object(int posx,int posy, float x, float y, float z,int size)	
 	//{
 	//	
@@ -26,7 +33,8 @@ public:
 	~Object();
 	
 private:
-	Vec3<int> m_pos;  //위치
+	Vec3<double> m_pos;  //위치
+	Vec3<double> m_dir;
 	int m_size;	
 	double speed = 0.0001;
 };
