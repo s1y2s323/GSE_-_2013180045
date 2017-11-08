@@ -1,44 +1,29 @@
 #include "stdafx.h"
 #include "sCeneMgr.h"
-#include "Object.h"
-#include <iostream>
+
+
 
 sCeneMgr::sCeneMgr(int windowSizeX,int windowSizeY)
 {
-	m_WindowSizeX = windowSizeX;
-	m_WindowSizeY = windowSizeY;
-	g_Renderer = new Renderer(m_WindowSizeX, m_WindowSizeY);
+	g_Renderer = new Renderer(500, 500);
+	WindowWidth = windowSizeX;
+	WindowHeight = windowSizeY;
+	m_StartTime = (float)timeGetTime()*0.001f;
+	m_StartTime2 = (float)timeGetTime()*0.001f;
 
-	////Load shaders
-	//m_SolidRectShader = CompileShaders("./Shaders/SolidRect.vs", "./Shaders/SolidRect.fs");
-	//
-	////Create VBOs
-	//CreateVertexBufferObjects();
-	//
-	//if (m_SolidRectShader > 0 && m_VBORect > 0)
-	//{
-	//	m_Initialized = true;
-	//}
+	m_texCharacter = g_Renderer->CreatePngTexture("./Textures/PNGs/gomdori.png");
+	for (int i = 0; i < ObjCount; i++)
+	{
+		obj[i] = NULL;
+	}
+	AddObject(0, 0, OBJECT_BUILDING,-1);
+	
 }
 
 
-bool sCeneMgr::ScreenCollisionTest(int width, int height,int i)
-{
-	if (obj[i].GetpositionX() < 0)	
-		obj[i].SetDir(obj[i].GetdirX()*-1,obj[i].GetdirY(),0);	
-		
-	if (obj[i].GetpositionX()> width)
-		obj[i].SetDir(obj[i].GetdirX()*-1, obj[i].GetdirY(), 0);
 
-	if (obj[i].GetpositionY() < 0)
-		obj[i].SetDir(obj[i].GetdirX(), obj[i].GetdirY()*-1, 0);
 
-	if (obj[i].GetpositionY() > height)
-		obj[i].SetDir(obj[i].GetdirX(), obj[i].GetdirY()*-1, 0);
-	return true;
-}
-
-bool sCeneMgr::BoxBoxCollisionTest(int minX,int maxX,int minY,int maxY,int minX1,int maxX1,int minY1,int maxY1)
+bool sCeneMgr::BoxBoxCollisionTest(float minX, float minY, float maxX, float maxY, float minX1, float minY1, float maxX1, float maxY1)
 {
 	if (minX > maxX1)
 		return false;
@@ -49,55 +34,201 @@ bool sCeneMgr::BoxBoxCollisionTest(int minX,int maxX,int minY,int maxY,int minX1
 	    return false;
 	if (maxY < minY1)
 		return false;
+
+	return true;
 }
 
-void sCeneMgr::update()
+void sCeneMgr::UpdateAllObjects(float elapsedTime)
 {
-	mt19937 engine((unsigned int)time(NULL));                    // MT19937 난수 엔진
-	uniform_real_distribution<double> distribution(-1, 1);       // 생성 범위
-	auto generator = bind(distribution, engine);
 	for (int i = 0; i < ObjCount; i++)
 	{
-		//if (BoxBoxCollisionTest(0, 500, 0, 500, 500, 0, 0, 500) == true)
-		ScreenCollisionTest(500, 500, i);
+		if (obj[i] != NULL)
+		{
 			
-		//g_Renderer->DrawSolidRect(obj[i].GetpositionX(), obj[i].GetpositionY(), 0, obj[i].Getsize(), 1, 0, 1, 1);
-		//obj[i].Setposition(obj[i].GetpositionX()+ generator() , obj[i].GetpositionY() + generator(),0);
-		obj[i].add(0.1*obj[i].GetdirX(),0.1*obj[i].GetdirY(),0);
-		//obj[i].Setposition(obj[i].GetpositionX() + 0.05, obj[i].GetpositionY() + 0.05, 0);	
+			if (obj[i]->GetLife() < 0.0001f || obj[i]->GetLifeTime() < 0.0001f)
+			{
+				DeleteObject(i);
+				//delete obj[i];
+				//obj[i] = NUll;
+			}
+			else
+			{
+				obj[i]->Update(elapsedTime);
+			}
+		}
+	}
+
+	CollisionTest();
+	BulletShot();
+	CharacterShot();
+}
+void sCeneMgr::DrawObjects()
+{
+	g_Renderer->DrawSolidRect(0, 0, 0, WindowWidth, 0, 0, 0, 0.4);
+	for (int i = 0; i < ObjCount; i++)
+	{
+		if (obj[i] != NULL)
+		{			
+			if (obj[i]->GetType() == OBJECT_BUILDING)
+			{
+				g_Renderer->DrawTexturedRect(
+					obj[i]->GetpositionX(),
+					obj[i]->GetpositionY(),
+					0,
+					obj[i]->Getsize(),
+					obj[i]->m_color.getX(),
+					obj[i]->m_color.getY(),
+					obj[i]->m_color.getZ(),
+					obj[i]->m_color.getW(),
+					m_texCharacter
+				);
+			}
+			else
+			{
+				g_Renderer->DrawSolidRect(
+					obj[i]->GetpositionX(),
+					obj[i]->GetpositionY(),
+					0,
+					obj[i]->Getsize(),
+					obj[i]->m_color.getX(),
+					obj[i]->m_color.getY(),
+					obj[i]->m_color.getZ(),
+					obj[i]->m_color.getW()
+				);
+			}
+		}
+	}
+
+}
+int sCeneMgr::AddObject(float x,float y,int type,int num)
+{
+	for (int i = 0; i < ObjCount; i++)
+	{
+		if (obj[i] == NULL)
+		{
+			obj[i] = new Object(x, y,type);
+			obj[i]->SetArrowOwn(num);
+		
+			return i;
+		}
+	}
+	return -1;
+}
+
+void sCeneMgr::DeleteObject(int index)
+{
+	if (obj[index] != NULL)
+	{
+		delete obj[index];
+		obj[index] = NULL;
 	}
 }
-void sCeneMgr::Draw()
+void sCeneMgr::CollisionTest()
 {
-	for (int i = 0; i < 50; i++)
-	g_Renderer->DrawSolidRect(Getobject(i)->GetpositionX(), Getobject(i)->GetpositionY(), 0, 20, 1, 0, 1, 1);
+	for (int i = 0; i < ObjCount; i++)
+	{
+		
+		if (obj[i] != NULL)
+		{
+			for (int j = 0; j < ObjCount; j++)
+			{
+				if (i == j)
+					continue;
+				if (obj[j] != NULL)
+				{
+					float minX, minY;
+					float maxX, maxY;
 
+					float minX1, minY1;
+					float maxX1, maxY1;
+
+					minX = obj[i]->GetpositionX() - obj[i]->Getsize()/ 2.f;
+					minY = obj[i]->GetpositionY() - obj[i]->Getsize()/ 2.f;
+					maxX = obj[i]->GetpositionX() + obj[i]->Getsize()/ 2.f;
+					maxY = obj[i]->GetpositionY() + obj[i]->Getsize()/ 2.f;
+					
+					minX1= obj[j]->GetpositionX ()- obj[j]->Getsize() / 2.f;
+					minY1 = obj[j]->GetpositionY() - obj[j]->Getsize() / 2.f;
+					maxX1= obj[j]->GetpositionX() + obj[j]->Getsize() / 2.f;
+					maxY1 = obj[j]->GetpositionY() + obj[j]->Getsize() / 2.f;
+					if (BoxBoxCollisionTest(minX, minY, maxX, maxY, minX1, minY1, maxX1, maxY1))
+					{
+						CollisionAfer(i, j);
+						
+						//DeleteObject(i);
+					}
+				}
+			}
+			
+		}
+	}
 }
-void sCeneMgr::buildObjects()
+void sCeneMgr::BulletShot()
 {
-	mt19937 engine((unsigned int)time(NULL));                    // MT19937 난수 엔진
-	uniform_int_distribution<int> distribution(-200, 200);       // 생성 범위
-	uniform_real_distribution<double> distribution2(-1.0, 1.0);
-	auto generator = bind(distribution, engine);
-	auto dir = bind(distribution2, engine);
-
+	float NowTime = (float)timeGetTime()*0.001f;
+	if (NowTime - m_StartTime >= 0.5f)
+	{
+		AddObject(0, 0, 2,-1);
+	    m_StartTime = NowTime;
+	}
+}
+void sCeneMgr::CharacterShot()
+{
 	
 	for (int i = 0; i < ObjCount; i++)
 	{
-		obj[i].Setposition(generator(), generator(), 0);
-		obj[i].Setsize(10);
-		obj[i].SetDir(dir(),dir(),0);
+		if (obj[i] != NULL && obj[i]->GetType()==OBJECT_CHARACTER)
+		{
+			obj[i]->m_nowTime = (float)timeGetTime()*0.001f;
+			if (obj[i]->m_nowTime - obj[i]->GetstartTime() >= 0.5f)
+			{
+				AddObject(obj[i]->GetpositionX(), obj[i]->GetpositionY(), 3,i);	
+				//if (num >= ObjCount-1)
+				//	DeleteObject(num);
+				//else
+				//{
+				
+					obj[i]->SetstartTime(obj[i]->m_nowTime);
+					//obj[num]->SetArrowOwn(i);
+				//}
+							
+			}
+		}
 	}
-	//m_objects.push_back(Object());
 	
-	//m_objects.push_back(Object);
-	//p_object->Setposition(100, 100, 10);
-	//p_object->Setsize(20);
-	
+}
+void sCeneMgr::CollisionAfer(int i, int j)
+{
+	if (obj[i]->GetType() == OBJECT_BUILDING && obj[j]->GetType() == OBJECT_CHARACTER)
+	{
+		obj[i]->SetLife(obj[i]->GetLife()-obj[j]->GetLife());
+		DeleteObject(j);
+	}
+	else if (obj[i]->GetType() == OBJECT_CHARACTER && obj[j]->GetType() == OBJECT_BULLET)
+	{
+		
+			obj[i]->SetLife(obj[i]->GetLife() - obj[j]->GetLife());
+			DeleteObject(j);
+		
+	}
+	else if (obj[i]->GetType() == OBJECT_BUILDING  && obj[j]->GetType()==OBJECT_ARROW)
+	{
+		
+			obj[i]->SetLife(obj[i]->GetLife() - obj[j]->GetLife());
+			DeleteObject(j);		
+	}
+	else if (obj[i]->GetType() == OBJECT_CHARACTER && obj[j]->GetType() == OBJECT_ARROW)
+	{
+		if (i != obj[j]->GetArrowOwn())
+		{
+			obj[i]->SetLife(obj[i]->GetLife() - obj[j]->GetLife());
+			DeleteObject(j);
+		}
+	}
 }
 Object* sCeneMgr::Getobject(int index)
 {
-	return& obj[index];
+	return obj[index];
 }
 sCeneMgr::~sCeneMgr()
 {
