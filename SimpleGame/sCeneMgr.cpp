@@ -5,18 +5,26 @@
 
 sCeneMgr::sCeneMgr(int windowSizeX,int windowSizeY)
 {
-	g_Renderer = new Renderer(500, 500);
+	g_Renderer = new Renderer(windowSizeX, windowSizeY);
 	WindowWidth = windowSizeX;
 	WindowHeight = windowSizeY;
-	m_StartTime = (float)timeGetTime()*0.001f;
-	m_StartTime2 = (float)timeGetTime()*0.001f;
+	m_redCharTime = (float)timeGetTime()*0.001f;
+	m_blueCharTime = (float)timeGetTime()*0.001f;
 
-	m_texCharacter = g_Renderer->CreatePngTexture("./Textures/PNGs/gomdori.png");
+	m_texCharacter = g_Renderer->CreatePngTexture("./Textures/PNGs/Building.png");
+	m_texCharacter2 = g_Renderer->CreatePngTexture("./Textures/PNGs/Building2.png");
+
 	for (int i = 0; i < ObjCount; i++)
 	{
 		obj[i] = NULL;
 	}
-	AddObject(0, 0, OBJECT_BUILDING,-1);
+	AddObject(0, 350, OBJECT_BUILDING,0);
+	AddObject(-150, 350, OBJECT_BUILDING, 0);
+	AddObject(150, 350, OBJECT_BUILDING, 0);
+
+	AddObject(0, -350, OBJECT_BUILDING, 1);
+	AddObject(-150, -350, OBJECT_BUILDING, 1);
+	AddObject(150, -350, OBJECT_BUILDING, 1);
 	
 }
 
@@ -40,17 +48,18 @@ bool sCeneMgr::BoxBoxCollisionTest(float minX, float minY, float maxX, float max
 
 void sCeneMgr::UpdateAllObjects(float elapsedTime)
 {
+	
 	for (int i = 0; i < ObjCount; i++)
 	{
 		if (obj[i] != NULL)
 		{
 			
-			if (obj[i]->GetLife() < 0.0001f || obj[i]->GetLifeTime() < 0.0001f)
+			if (obj[i]->GetLife() < 0.0001f || obj[i]->GetLifeTime() < 0.0001f || obj[i]->GetDelete()==true)
 			{
 				DeleteObject(i);
 				//delete obj[i];
 				//obj[i] = NUll;
-			}
+			}			
 			else
 			{
 				obj[i]->Update(elapsedTime);
@@ -59,29 +68,86 @@ void sCeneMgr::UpdateAllObjects(float elapsedTime)
 	}
 
 	CollisionTest();
-	BulletShot();
+	RedCharacterAdd();
+	RedBulletShot();
+	//BulletShot();
 	CharacterShot();
 }
 void sCeneMgr::DrawObjects()
 {
-	g_Renderer->DrawSolidRect(0, 0, 0, WindowWidth, 0, 0, 0, 0.4);
+	//g_Renderer->DrawSolidRect(0, 0, 0, WindowWidth, 0, 0, 0, 0.4,0.1);
 	for (int i = 0; i < ObjCount; i++)
 	{
 		if (obj[i] != NULL)
 		{			
+			if (obj[i]->GetType() == OBJECT_BUILDING || obj[i]->GetType() == OBJECT_CHARACTER)
+			{
+				if (obj[i]->GetTeamNum() == TEAM_RED)
+				{
+					g_Renderer->DrawSolidRectGauge(
+						obj[i]->GetpositionX(),
+						obj[i]->GetpositionY() + obj[i]->Getsize()/2.f+5,
+						0,
+						obj[i]->Getsize(),
+						3,
+						1,
+						0,
+						0,
+						1,
+						obj[i]->GetGuage(),
+						0.05
+					);
+				}
+				else
+				{
+					g_Renderer->DrawSolidRectGauge(
+						obj[i]->GetpositionX(),
+						obj[i]->GetpositionY() + obj[i]->Getsize() / 2.f+5,
+						0,
+						obj[i]->Getsize(),
+						3,
+						0,
+						0,
+						1,
+						1,
+						obj[i]->GetGuage(),
+						0.05
+					);
+				}
+			}
+			
 			if (obj[i]->GetType() == OBJECT_BUILDING)
 			{
-				g_Renderer->DrawTexturedRect(
-					obj[i]->GetpositionX(),
-					obj[i]->GetpositionY(),
-					0,
-					obj[i]->Getsize(),
-					obj[i]->m_color.getX(),
-					obj[i]->m_color.getY(),
-					obj[i]->m_color.getZ(),
-					obj[i]->m_color.getW(),
-					m_texCharacter
-				);
+				if (obj[i]->GetTeamNum() == TEAM_RED)
+				{
+					g_Renderer->DrawTexturedRect(
+						obj[i]->GetpositionX(),
+						obj[i]->GetpositionY(),
+						0,
+						obj[i]->Getsize(),
+						1,
+						1,
+						1,
+						1,
+						m_texCharacter,
+						LEVEL_BUILDING
+					);
+				}
+				else
+				{
+					g_Renderer->DrawTexturedRect(
+						obj[i]->GetpositionX(),
+						obj[i]->GetpositionY(),
+						0,
+						obj[i]->Getsize(),
+						1,
+						1,
+						1,
+						1,
+						m_texCharacter2,
+						LEVEL_BUILDING
+					);
+				}
 			}
 			else
 			{
@@ -93,7 +159,8 @@ void sCeneMgr::DrawObjects()
 					obj[i]->m_color.getX(),
 					obj[i]->m_color.getY(),
 					obj[i]->m_color.getZ(),
-					obj[i]->m_color.getW()
+					obj[i]->m_color.getW(),
+					LEVEL_BULLET
 				);
 			}
 		}
@@ -106,8 +173,11 @@ int sCeneMgr::AddObject(float x,float y,int type,int num)
 	{
 		if (obj[i] == NULL)
 		{
-			obj[i] = new Object(x, y,type);
-			obj[i]->SetArrowOwn(num);
+		
+				obj[i] = new Object(x, y, type, num);
+			
+		
+			//obj[i]->SetArrowOwn(num);
 		
 			return i;
 		}
@@ -163,14 +233,48 @@ void sCeneMgr::CollisionTest()
 		}
 	}
 }
-void sCeneMgr::BulletShot()
+
+void sCeneMgr::RedCharacterAdd()
+{
+	
+	//x - 250, -y + 400
+	float NowTime = (float)timeGetTime()*0.001f;
+	if (NowTime -m_redCharTime >= 5.0f)
+	{
+		AddObject((int)std::rand()%500-250, (int)std::rand() % 400, 1, TEAM_RED);
+		m_redCharTime = NowTime;
+	}
+}
+void sCeneMgr::BlueCharacterAdd(float x, float y, int type, int num)
 {
 	float NowTime = (float)timeGetTime()*0.001f;
-	if (NowTime - m_StartTime >= 0.5f)
+	if (NowTime - m_blueCharTime >= 7.0f)
 	{
-		AddObject(0, 0, 2,-1);
-	    m_StartTime = NowTime;
+		AddObject(x, y, 1, TEAM_BLUE);
+		m_blueCharTime = NowTime;
 	}
+	
+	
+}
+void sCeneMgr::RedBulletShot()
+{
+	for (int i = 0; i < ObjCount; i++)
+	{
+		if (obj[i] != NULL && obj[i]->GetType() == OBJECT_BUILDING)
+		{
+			obj[i]->m_nowTime = (float)timeGetTime()*0.001f;
+			if (obj[i]->m_nowTime - obj[i]->GetstartTime() >= 1.0f)
+			{
+				if (obj[i]->GetTeamNum() == TEAM_RED)
+					AddObject(obj[i]->GetpositionX(), obj[i]->GetpositionY(), 2, TEAM_RED);
+				else if (obj[i]->GetTeamNum() == TEAM_BLUE)
+					AddObject(obj[i]->GetpositionX(), obj[i]->GetpositionY(), 2, TEAM_BLUE);
+
+				obj[i]->SetstartTime(obj[i]->m_nowTime);
+			}
+		}
+	}
+	
 }
 void sCeneMgr::CharacterShot()
 {
@@ -180,9 +284,14 @@ void sCeneMgr::CharacterShot()
 		if (obj[i] != NULL && obj[i]->GetType()==OBJECT_CHARACTER)
 		{
 			obj[i]->m_nowTime = (float)timeGetTime()*0.001f;
-			if (obj[i]->m_nowTime - obj[i]->GetstartTime() >= 0.5f)
+			if (obj[i]->m_nowTime - obj[i]->GetstartTime() >= 3.0f)
 			{
-				AddObject(obj[i]->GetpositionX(), obj[i]->GetpositionY(), 3,i);	
+				if(obj[i]->GetTeamNum()==TEAM_RED)
+					AddObject(obj[i]->GetpositionX(), obj[i]->GetpositionY(), 3, TEAM_RED);
+				else if (obj[i]->GetTeamNum() == TEAM_BLUE)
+					AddObject(obj[i]->GetpositionX(), obj[i]->GetpositionY(), 3, TEAM_BLUE);
+
+
 				//if (num >= ObjCount-1)
 				//	DeleteObject(num);
 				//else
@@ -199,32 +308,41 @@ void sCeneMgr::CharacterShot()
 }
 void sCeneMgr::CollisionAfer(int i, int j)
 {
-	if (obj[i]->GetType() == OBJECT_BUILDING && obj[j]->GetType() == OBJECT_CHARACTER)
+	if (obj[i]->GetTeamNum() != obj[j]->GetTeamNum())
 	{
-		obj[i]->SetLife(obj[i]->GetLife()-obj[j]->GetLife());
-		DeleteObject(j);
-	}
-	else if (obj[i]->GetType() == OBJECT_CHARACTER && obj[j]->GetType() == OBJECT_BULLET)
-	{
-		
+		if (obj[i]->GetType() == OBJECT_BUILDING && obj[j]->GetType() == OBJECT_CHARACTER)
+		{
 			obj[i]->SetLife(obj[i]->GetLife() - obj[j]->GetLife());
 			DeleteObject(j);
-		
-	}
-	else if (obj[i]->GetType() == OBJECT_BUILDING  && obj[j]->GetType()==OBJECT_ARROW)
-	{
-		
+		}
+		else if (obj[i]->GetType() == OBJECT_CHARACTER && obj[j]->GetType() == OBJECT_BULLET)
+		{
+
 			obj[i]->SetLife(obj[i]->GetLife() - obj[j]->GetLife());
-			DeleteObject(j);		
-	}
-	else if (obj[i]->GetType() == OBJECT_CHARACTER && obj[j]->GetType() == OBJECT_ARROW)
-	{
-		if (i != obj[j]->GetArrowOwn())
+			DeleteObject(j);
+
+		}
+		else if (obj[i]->GetType() == OBJECT_BUILDING  && obj[j]->GetType() == OBJECT_ARROW)
+		{
+
+			obj[i]->SetLife(obj[i]->GetLife() - obj[j]->GetLife());
+			DeleteObject(j);
+		}
+		else if (obj[i]->GetType() == OBJECT_CHARACTER && obj[j]->GetType() == OBJECT_ARROW)
+		{
+			if (i != obj[j]->GetArrowOwn())
+			{
+				obj[i]->SetLife(obj[i]->GetLife() - obj[j]->GetLife());
+				DeleteObject(j);
+			}
+		}
+		else if (obj[i]->GetType() == OBJECT_BUILDING && obj[j]->GetType() == OBJECT_BULLET)
 		{
 			obj[i]->SetLife(obj[i]->GetLife() - obj[j]->GetLife());
 			DeleteObject(j);
 		}
 	}
+	
 }
 Object* sCeneMgr::Getobject(int index)
 {

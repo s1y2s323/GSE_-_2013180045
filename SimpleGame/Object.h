@@ -8,7 +8,7 @@ class Object
 	
 public:
 	Object();
-	Object(float x,float y,int type);
+	Object(float x,float y,int type,int team);
 	float GetLife();
 	float GetLifeTime();
 	int GetType();
@@ -38,6 +38,12 @@ public:
 	int GetArrowOwn();
 	void SetArrowOwn(int num);
 
+	int GetTeamNum();
+	void SetTeamNum(int team);
+
+	bool GetDelete();
+
+	float GetGuage();
 	//Object(int posx,int posy, float x, float y, float z,int size)	
 	//{
 	//	
@@ -50,6 +56,7 @@ public:
 	//float m_color[4];
 	~Object();
 	float m_nowTime;
+
 private:
 	Vec3<double> m_pos;  //À§Ä¡
 	Vec3<double> m_dir;
@@ -63,6 +70,10 @@ private:
 	double speed = 0.01;
 
 	int CheckArrowOwn;
+
+	int teamNum;
+
+	bool Delete = false;
 
 	
 };

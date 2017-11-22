@@ -29,6 +29,7 @@ void RenderScene(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.3f, 0.3f, 1.0f);
+	glClearDepth(1.f);
 	
 	DWORD currTime = timeGetTime();
 	DWORD elapsedTime = currTime - prevTime;
@@ -54,10 +55,13 @@ void MouseInput(int button, int state, int x, int y)
 	}
 	if (button == GLUT_LEFT_BUTTON && state == GLUT_UP)
 	{
-		if (LButtonDown)
+		if (LButtonDown && (-y+400) <0)
 		{
 			for (int i = 0; i < 1; i++)
-				scene->AddObject(x - 250, -y + 250,OBJECT_CHARACTER,-1);
+			{
+				
+				scene->BlueCharacterAdd(x - 250, -y + 400, OBJECT_CHARACTER, TEAM_BLUE);
+			}
 		}
 		LButtonDown = false;
 	}
@@ -92,7 +96,7 @@ int main(int argc, char **argv)
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowPosition(0, 0);
-	glutInitWindowSize(500, 500);
+	glutInitWindowSize(500, 800);
 	glutCreateWindow("Game Software Engineering KPU");
 
 	glewInit();
@@ -119,7 +123,7 @@ int main(int argc, char **argv)
 	glutMouseFunc(MouseInput);
 	glutSpecialFunc(SpecialKeyInput);
 
-	scene = new sCeneMgr(500, 500);
+	scene = new sCeneMgr(500, 800);
 	//for (int i = 0; i < 30; i++)
 	//{
 	//	float x = 250.f * 2.f * ((float)std::rand() / (float)RAND_MAX - 0.5f);

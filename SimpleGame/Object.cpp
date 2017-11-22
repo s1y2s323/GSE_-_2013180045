@@ -2,32 +2,65 @@
 #include "Object.h"
 
 
-Object::Object(float x,float y,int type)
+Object::Object(float x,float y,int type,int team)
 {
-	if (type == 0)
+	if (team == 0)
 	{
-		m_color.set(1, 0, 0, 1);	
-		m_size = 50;
-		m_life = 500;
+		teamNum = 0;
+		if (type == 0)
+		{
+			m_color.set(0.8, 0.8, 0.8, 1);
+			m_size = 50;
+			m_life = 500;
+		}
+		else if (type == 1)
+		{
+			m_color.set(1, 0, 0, 1);
+			m_size = 10;
+			m_life = 100;
+		}
+		else if (type == 2)
+		{
+			m_color.set(1, 0, 0, 1);
+			m_size = 4;
+			m_life = 15;
+		}
+		else if (type == 3)
+		{
+			m_color.set(0.5, 0.2, 0.7, 1);
+			m_size = 4;
+			m_life = 10;
+		}
 	}
-	else if (type == 1)
+	else if (team == 1)
 	{
-		m_color.set(0, 1, 0, 1);
-		m_size = 10;
-		m_life = 10;
+		teamNum = 1;		
+		if (type == 0)
+		{
+			m_color.set(1, 0, 0, 1);
+			m_size = 50;
+			m_life = 500;
+		}
+		else if (type == 1)
+		{
+			m_color.set(0, 0, 1, 1);
+			m_size = 10;
+			m_life = 100;
+		}
+		else if (type == 2)
+		{
+			m_color.set(0, 0, 1, 1);
+			m_size = 4;
+			m_life = 15;
+		}
+		else if (type == 3)
+		{
+			m_color.set(1, 1, 0, 1);
+			m_size = 4;
+			m_life = 10;
+		}
 	}
-	else if (type == 2)
-	{
-		m_color.set(0, 0, 1, 1);
-		m_size = 2;
-		m_life = 20;
-	}
-	else if (type == 3)
-	{
-		m_color.set(0.5, 1, 1, 1);		
-		m_size = 5;
-		m_life = 20;
-	}
+	
 	m_pos.set(x, y, 0);
 	m_dir.set(200.f *(((float)std::rand() / (float)RAND_MAX) - 0.5f),
 		200.f *(((float)std::rand() / (float)RAND_MAX) - 0.5f), 0);
@@ -45,6 +78,7 @@ Object::Object(float x,float y,int type)
 
 Object::~Object()
 {
+
 }
 void Object::Update(float elapsedTime)
 {
@@ -56,12 +90,23 @@ void Object::Update(float elapsedTime)
 			m_pos.getY() + m_dir.getY()*elapseTimeInSecond, 0);
 	}
 	
+	
+	
 	if (m_pos.getX() > 250 || m_pos.getX() <-250)
 	{
+		if (m_type == 2 || m_type == 3)
+		{
+			Delete = true;
+		}
+			
 		m_dir.set(-m_dir.getX(),m_dir.getY(),0);
 	}
-	if (m_pos.getY() > 250 || m_pos.getY() < -250)
+	if (m_pos.getY() > 400 || m_pos.getY() < -400)
 	{
+		if (m_type == 2 || m_type == 3)
+		{
+			Delete = true;
+		}
 		m_dir.set(m_dir.getX(), -m_dir.getY(), 0);
 
 	}
@@ -110,4 +155,39 @@ int Object::GetArrowOwn()
 void Object::SetArrowOwn(int num)
 {
 	CheckArrowOwn = num;
+}
+
+int Object::GetTeamNum()
+{
+	return teamNum;
+}
+
+void Object::SetTeamNum(int team)
+{
+	teamNum = team;
+}
+
+bool Object::GetDelete()
+{
+	return Delete;
+}
+
+float Object::GetGuage()
+{
+	if (m_type == 0)
+	{
+		return m_life / 500.f;
+	}
+	else if (m_type == 1)
+	{
+		return m_life / 100.f;
+	}
+	else if (m_type == 2)
+	{
+		return m_life / 15.f;
+	}
+	else if (m_type == 3)
+	{
+		return m_life / 10.f;
+	}
 }
