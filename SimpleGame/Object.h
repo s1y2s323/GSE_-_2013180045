@@ -44,6 +44,8 @@ public:
 	bool GetDelete();
 
 	float GetGuage();
+
+	int GetDir();
 	//Object(int posx,int posy, float x, float y, float z,int size)	
 	//{
 	//	

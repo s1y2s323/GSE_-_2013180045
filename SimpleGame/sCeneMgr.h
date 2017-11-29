@@ -40,6 +40,8 @@ public:
 	void DeleteObject(int index);
 	int AddObject(float x, float y,int type,int num);
 
+	void Animate();
+
 	
 	
 
@@ -52,6 +54,8 @@ private:
 
 	int m_texCharacter;
 	int m_texCharacter2;
+	int m_background;
+	int m_texBullet;
 
 	Object *obj[ObjCount];
 	
@@ -62,6 +66,10 @@ private:
 	float m_redArrowTime;
 	float m_blueArrowTime;
 
+	int AniX=0, AniY=0;
+
 	float m_bulletTime;
+
+	float m_startTime = 0.0f;
 };
 

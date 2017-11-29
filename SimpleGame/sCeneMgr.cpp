@@ -5,15 +5,18 @@
 
 sCeneMgr::sCeneMgr(int windowSizeX,int windowSizeY)
 {
+	m_bulletTime= (float)timeGetTime()*0.001f;
 	g_Renderer = new Renderer(windowSizeX, windowSizeY);
 	WindowWidth = windowSizeX;
 	WindowHeight = windowSizeY;
 	m_redCharTime = (float)timeGetTime()*0.001f;
 	m_blueCharTime = (float)timeGetTime()*0.001f;
 
-	m_texCharacter = g_Renderer->CreatePngTexture("./Textures/PNGs/Building.png");
-	m_texCharacter2 = g_Renderer->CreatePngTexture("./Textures/PNGs/Building2.png");
-
+	m_texCharacter = g_Renderer->CreatePngTexture("./Textures/PNGs/Knight.png");
+	m_texCharacter2 = g_Renderer->CreatePngTexture("./Textures/PNGs/Ninza.png");
+	m_background= g_Renderer->CreatePngTexture("./Textures/PNGs/background.png");
+	m_texBullet= g_Renderer->CreatePngTexture("./Textures/PNGs/particle.png");
+	
 	for (int i = 0; i < ObjCount; i++)
 	{
 		obj[i] = NULL;
@@ -45,7 +48,25 @@ bool sCeneMgr::BoxBoxCollisionTest(float minX, float minY, float maxX, float max
 
 	return true;
 }
+void sCeneMgr::Animate()
+{
+	float NowTime = (float)timeGetTime()*0.001f;
+	if (NowTime - m_startTime >= 0.05f)
+	{
+		AniX++;
+		if (AniX >= 10)
+		{
+			AniX = 0;
+			AniY++;
+		}
+		if (AniY >= 2)
+			AniY = 0;
+		m_startTime = NowTime;
+	}
 
+	
+
+}
 void sCeneMgr::UpdateAllObjects(float elapsedTime)
 {
 	
@@ -72,9 +93,12 @@ void sCeneMgr::UpdateAllObjects(float elapsedTime)
 	RedBulletShot();
 	//BulletShot();
 	CharacterShot();
+	Animate();
 }
 void sCeneMgr::DrawObjects()
 {
+	float NowTime = (float)timeGetTime()*0.001f;
+	g_Renderer->DrawTexturedRect(0,0,0,800,1.0,1.0,1.0,1.0,m_background,0.99);
 	//g_Renderer->DrawSolidRect(0, 0, 0, WindowWidth, 0, 0, 0, 0.4,0.1);
 	for (int i = 0; i < ObjCount; i++)
 	{
@@ -120,22 +144,38 @@ void sCeneMgr::DrawObjects()
 			{
 				if (obj[i]->GetTeamNum() == TEAM_RED)
 				{
-					g_Renderer->DrawTexturedRect(
+					g_Renderer->DrawTexturedRectSeq(
 						obj[i]->GetpositionX(),
 						obj[i]->GetpositionY(),
-						0,
+						0, 
 						obj[i]->Getsize(),
 						1,
 						1,
 						1,
 						1,
 						m_texCharacter,
-						LEVEL_BUILDING
-					);
+						AniX,
+						AniY,
+						10,
+						3,
+						LEVEL_BUILDING);
+					//g_Renderer->DrawTexturedRect(
+					//	obj[i]->GetpositionX(),
+					//	obj[i]->GetpositionY(),
+					//	0,
+					//	obj[i]->Getsize(),
+					//	1,
+					//	1,
+					//	1,
+					//	1,
+					//	m_texCharacter,
+					//	LEVEL_BUILDING
+					//);
 				}
 				else
 				{
-					g_Renderer->DrawTexturedRect(
+				
+					g_Renderer->DrawTexturedRectSeq(
 						obj[i]->GetpositionX(),
 						obj[i]->GetpositionY(),
 						0,
@@ -145,10 +185,26 @@ void sCeneMgr::DrawObjects()
 						1,
 						1,
 						m_texCharacter2,
-						LEVEL_BUILDING
-					);
+						AniX,
+						AniY,
+						10,
+						3,
+						LEVEL_BUILDING);
+					//g_Renderer->DrawTexturedRect(
+					//	obj[i]->GetpositionX(),
+					//	obj[i]->GetpositionY(),
+					//	0,
+					//	obj[i]->Getsize(),
+					//	1,
+					//	1,
+					//	1,
+					//	1,
+					//	m_texCharacter2,
+					//	LEVEL_BUILDING
+					//);
 				}
 			}
+			
 			else
 			{
 				g_Renderer->DrawSolidRect(
@@ -162,6 +218,24 @@ void sCeneMgr::DrawObjects()
 					obj[i]->m_color.getW(),
 					LEVEL_BULLET
 				);
+				if(obj[i]->GetType()==OBJECT_BULLET)
+				{
+					g_Renderer->DrawParticle(
+						obj[i]->GetpositionX(),
+						obj[i]->GetpositionY(),
+						0,
+						3,
+						1,
+						1,
+						1,
+						1,
+						-obj[i]->GetdirX() / 20.0f,
+						-obj[i]->GetdirY() / 10.0f,
+						m_texBullet,
+						m_bulletTime - NowTime / 2.0f
+					);
+				}
+				
 			}
 		}
 	}

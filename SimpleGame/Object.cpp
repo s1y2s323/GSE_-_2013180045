@@ -65,7 +65,8 @@ Object::Object(float x,float y,int type,int team)
 	m_dir.set(200.f *(((float)std::rand() / (float)RAND_MAX) - 0.5f),
 		200.f *(((float)std::rand() / (float)RAND_MAX) - 0.5f), 0);
 	
-
+	
+	
 	//m_life = 10000.0f;
 	m_lifeTime = 100000.0f;
 
@@ -191,3 +192,4 @@ float Object::GetGuage()
 		return m_life / 10.f;
 	}
 }
+
