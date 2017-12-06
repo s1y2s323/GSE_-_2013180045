@@ -1,6 +1,7 @@
 #pragma once
 #include "Object.h"
 #include "Renderer.h"
+#include "Sound.h"
 //#include "stdafx.h"
 #define ObjCount 50
 
@@ -40,6 +41,8 @@ public:
 	void DeleteObject(int index);
 	int AddObject(float x, float y,int type,int num);
 
+	void Drawtext(int index);
+
 	void Animate();
 
 	
@@ -51,6 +54,11 @@ private:
 	
 	Renderer *g_Renderer;
 	Renderer *m_renderer;
+	Sound *m_sound;
+
+	int soundBG;
+
+
 
 	int m_texCharacter;
 	int m_texCharacter2;

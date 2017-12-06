@@ -124,6 +124,7 @@ int main(int argc, char **argv)
 	glutSpecialFunc(SpecialKeyInput);
 
 	scene = new sCeneMgr(500, 800);
+
 	//for (int i = 0; i < 30; i++)
 	//{
 	//	float x = 250.f * 2.f * ((float)std::rand() / (float)RAND_MAX - 0.5f);

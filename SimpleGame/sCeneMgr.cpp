@@ -7,6 +7,10 @@ sCeneMgr::sCeneMgr(int windowSizeX,int windowSizeY)
 {
 	m_bulletTime= (float)timeGetTime()*0.001f;
 	g_Renderer = new Renderer(windowSizeX, windowSizeY);
+	m_sound = new Sound();
+	soundBG = m_sound->CreateSound("./Dependencies/SoundSamples/MF-W-90.XM");
+	m_sound->PlaySound(soundBG, true, 0.2f);
+
 	WindowWidth = windowSizeX;
 	WindowHeight = windowSizeY;
 	m_redCharTime = (float)timeGetTime()*0.001f;
@@ -84,6 +88,8 @@ void sCeneMgr::UpdateAllObjects(float elapsedTime)
 			else
 			{
 				obj[i]->Update(elapsedTime);
+				
+
 			}
 		}
 	}
@@ -99,13 +105,18 @@ void sCeneMgr::DrawObjects()
 {
 	float NowTime = (float)timeGetTime()*0.001f;
 	g_Renderer->DrawTexturedRect(0,0,0,800,1.0,1.0,1.0,1.0,m_background,0.99);
-	//g_Renderer->DrawSolidRect(0, 0, 0, WindowWidth, 0, 0, 0, 0.4,0.1);
+	
+	
 	for (int i = 0; i < ObjCount; i++)
 	{
 		if (obj[i] != NULL)
 		{			
+			
+
+			Drawtext(i);
 			if (obj[i]->GetType() == OBJECT_BUILDING || obj[i]->GetType() == OBJECT_CHARACTER)
 			{
+				
 				if (obj[i]->GetTeamNum() == TEAM_RED)
 				{
 					g_Renderer->DrawSolidRectGauge(
@@ -121,6 +132,7 @@ void sCeneMgr::DrawObjects()
 						obj[i]->GetGuage(),
 						0.05
 					);
+
 				}
 				else
 				{
@@ -345,6 +357,7 @@ void sCeneMgr::RedBulletShot()
 					AddObject(obj[i]->GetpositionX(), obj[i]->GetpositionY(), 2, TEAM_BLUE);
 
 				obj[i]->SetstartTime(obj[i]->m_nowTime);
+				
 			}
 		}
 	}
@@ -377,6 +390,32 @@ void sCeneMgr::CharacterShot()
 							
 			}
 		}
+	}
+	
+}
+
+void sCeneMgr::Drawtext(int index)
+{
+	int HP = obj[index]->GetLife();
+	string str = to_string(HP);
+	char* c_HP = (char*)str.c_str();
+	if (obj[index]->GetType() == OBJECT_BUILDING)
+	{
+		g_Renderer->DrawText(
+			obj[index]->GetpositionX() - 15,
+			obj[index]->GetpositionY() - 40,
+			GLUT_BITMAP_9_BY_15,
+			1.0, 0, 0,
+			c_HP);
+	}
+	else if (obj[index]->GetType() == OBJECT_CHARACTER)
+	{
+		g_Renderer->DrawText(
+			obj[index]->GetpositionX() - 15,
+			obj[index]->GetpositionY() - 20,
+			GLUT_BITMAP_9_BY_15,
+			1.0, 0, 0,
+			c_HP);
 	}
 	
 }
