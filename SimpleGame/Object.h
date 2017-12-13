@@ -58,7 +58,7 @@ public:
 	//float m_color[4];
 	~Object();
 	float m_nowTime;
-
+	float m_particleTime = 0.0f;
 private:
 	Vec3<double> m_pos;  //À§Ä¡
 	Vec3<double> m_dir;

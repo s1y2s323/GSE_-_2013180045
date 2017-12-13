@@ -43,10 +43,13 @@ public:
 
 	void Drawtext(int index);
 
+	void SoundExplosion();
+
 	void Animate();
 
+	void DrawSnow();
 	
-	
+	float snowTime = 0.0f;
 
 	void CollisionAfer(int i,int j);
 private:
@@ -57,6 +60,7 @@ private:
 	Sound *m_sound;
 
 	int soundBG;
+	int soundEX;
 
 
 
@@ -64,7 +68,7 @@ private:
 	int m_texCharacter2;
 	int m_background;
 	int m_texBullet;
-
+	int m_texParticle;
 	Object *obj[ObjCount];
 	
 	int WindowWidth;
@@ -73,11 +77,24 @@ private:
 	float m_blueCharTime;
 	float m_redArrowTime;
 	float m_blueArrowTime;
+	
+	
+
+	float soundTime = 0.0f;
 
 	int AniX=0, AniY=0;
 
 	float m_bulletTime;
 
 	float m_startTime = 0.0f;
+};
+
+class Timer
+{
+private :
+	float Time = 0.0f;
+public:
+	void addTime(float time);
+	float getTime();
 };
 

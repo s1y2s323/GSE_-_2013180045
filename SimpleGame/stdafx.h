@@ -13,6 +13,7 @@
 #include <time.h>
 #include <cstdlib>
 #include <windows.h> 
+#include <string>
 //#pragma comment( lib, "winmm.lib" ) 
 using namespace std;
 

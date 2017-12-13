@@ -8,19 +8,19 @@ sCeneMgr::sCeneMgr(int windowSizeX,int windowSizeY)
 	m_bulletTime= (float)timeGetTime()*0.001f;
 	g_Renderer = new Renderer(windowSizeX, windowSizeY);
 	m_sound = new Sound();
-	soundBG = m_sound->CreateSound("./Dependencies/SoundSamples/MF-W-90.XM");
+	soundBG = m_sound->CreateSound("./Dependencies/SoundSamples/getout.ogg");
 	m_sound->PlaySound(soundBG, true, 0.2f);
-
+	
 	WindowWidth = windowSizeX;
 	WindowHeight = windowSizeY;
 	m_redCharTime = (float)timeGetTime()*0.001f;
 	m_blueCharTime = (float)timeGetTime()*0.001f;
-
+	
 	m_texCharacter = g_Renderer->CreatePngTexture("./Textures/PNGs/Knight.png");
 	m_texCharacter2 = g_Renderer->CreatePngTexture("./Textures/PNGs/Ninza.png");
 	m_background= g_Renderer->CreatePngTexture("./Textures/PNGs/background.png");
 	m_texBullet= g_Renderer->CreatePngTexture("./Textures/PNGs/particle.png");
-	
+	m_texParticle= g_Renderer->CreatePngTexture("./Textures/PNGs/snow.png");
 	for (int i = 0; i < ObjCount; i++)
 	{
 		obj[i] = NULL;
@@ -93,7 +93,7 @@ void sCeneMgr::UpdateAllObjects(float elapsedTime)
 			}
 		}
 	}
-
+	snowTime += elapsedTime/1000.f;
 	CollisionTest();
 	RedCharacterAdd();
 	RedBulletShot();
@@ -105,7 +105,7 @@ void sCeneMgr::DrawObjects()
 {
 	float NowTime = (float)timeGetTime()*0.001f;
 	g_Renderer->DrawTexturedRect(0,0,0,800,1.0,1.0,1.0,1.0,m_background,0.99);
-	
+	DrawSnow();
 	
 	for (int i = 0; i < ObjCount; i++)
 	{
@@ -241,10 +241,12 @@ void sCeneMgr::DrawObjects()
 						1,
 						1,
 						1,
-						-obj[i]->GetdirX() / 20.0f,
-						-obj[i]->GetdirY() / 10.0f,
+						-obj[i]->GetdirX()*0.01f,
+						-obj[i]->GetdirY()*0.01f ,
 						m_texBullet,
-						m_bulletTime - NowTime / 2.0f
+						//m_bulletTime - NowTime / 2.0f,
+						obj[i]->m_particleTime,
+						0.5
 					);
 				}
 				
@@ -419,10 +421,27 @@ void sCeneMgr::Drawtext(int index)
 	}
 	
 }
+void sCeneMgr::SoundExplosion()
+{
+	float NowTime = (float)timeGetTime()*0.001f;
+	soundEX = m_sound->CreateSound("./Dependencies/SoundSamples/expolsion.wav");
+	m_sound->PlaySound(soundEX, true, 0.4f);
+	if (NowTime >= 1.0f)
+	{
+		m_sound->DeleteSound(soundEX);
+		soundTime = NowTime;
+	}
+}
+void sCeneMgr::DrawSnow()
+{
+	g_Renderer->DrawParticleClimate(0,0,0,1,1,1,1,1,-0.1,-0.1,m_texParticle,snowTime,0.01);
+}
 void sCeneMgr::CollisionAfer(int i, int j)
 {
+
 	if (obj[i]->GetTeamNum() != obj[j]->GetTeamNum())
 	{
+		SoundExplosion();
 		if (obj[i]->GetType() == OBJECT_BUILDING && obj[j]->GetType() == OBJECT_CHARACTER)
 		{
 			obj[i]->SetLife(obj[i]->GetLife() - obj[j]->GetLife());
@@ -454,8 +473,7 @@ void sCeneMgr::CollisionAfer(int i, int j)
 			obj[i]->SetLife(obj[i]->GetLife() - obj[j]->GetLife());
 			DeleteObject(j);
 		}
-	}
-	
+	}	
 }
 Object* sCeneMgr::Getobject(int index)
 {
@@ -463,4 +481,13 @@ Object* sCeneMgr::Getobject(int index)
 }
 sCeneMgr::~sCeneMgr()
 {
+}
+
+void Timer::addTime(float elapsedTime)
+{
+	Time += elapsedTime/1000.f;
+}
+float Timer::getTime()
+{
+	return Time;
 }

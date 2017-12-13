@@ -85,6 +85,8 @@ void Object::Update(float elapsedTime)
 {
 	
 	float elapseTimeInSecond = elapsedTime / 1000.f;
+	m_particleTime += elapseTimeInSecond;
+	
 	if (m_type != 0)
 	{
 		m_pos.set(m_pos.getX() + m_dir.getX()*elapseTimeInSecond,
